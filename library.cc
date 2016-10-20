@@ -1,5 +1,7 @@
-#include <library.h>
+#include <stdlib.h>
 #include "string.h"
+
+#include "library.h"
 
 int fixed_len_sizeof(Record *record) {
     int size = 0;
@@ -25,4 +27,18 @@ void fixed_len_write(void *buf, int size, Record *record) {
 
         record->push_back(attribute);
     }
+}
+
+void init_fixed_len_page(Page *page, int page_size, int slot_size) {
+    page->page_size = page_size;
+    page->slot_size = slot_size;
+    page->data = malloc(page_size);
+}
+
+int fixed_len_page_capacity(Page *page) {
+
+}
+
+int main() {
+    return 0;
 }
