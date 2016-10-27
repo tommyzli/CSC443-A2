@@ -7,7 +7,7 @@ typedef const char* V;
 typedef std::vector<V> Record;
 
 typedef struct {
-    void *data;
+    std::vector<Record> *data;
     int page_size;
     int slot_size;
 } Page;

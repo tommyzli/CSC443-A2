@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "string.h"
+#include <iostream>
+#include <vector>
 
 #include "library.h"
 
@@ -18,7 +20,7 @@ void fixed_len_write(Record *record, void *buf) {
     }
 }
 
-void fixed_len_write(void *buf, int size, Record *record) {
+void fixed_len_read(void *buf, int size, Record *record) {
     V attribute;
     for (int i = 0; i < size/ATTRIBUTE_SIZE; ++i) {
         attribute = new char[ATTRIBUTE_SIZE + 1];
@@ -32,11 +34,22 @@ void fixed_len_write(void *buf, int size, Record *record) {
 void init_fixed_len_page(Page *page, int page_size, int slot_size) {
     page->page_size = page_size;
     page->slot_size = slot_size;
-    page->data = malloc(page_size);
+    page->data = new std::vector<Record>;
 }
 
 int fixed_len_page_capacity(Page *page) {
+    return page->page_size / page->slot_size;
+}
 
+int fixed_len_page_freeslots(Page *page) {
+    int freeslots = 0;
+    for (std::vector<Record>::iterator it = page->data->begin(); it != page->data->end(); ++it) {
+        if (it->empty()) {
+            freeslots++;
+        }
+    }
+
+    return freeslots;
 }
 
 int main() {
