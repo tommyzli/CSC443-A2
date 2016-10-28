@@ -28,7 +28,13 @@ select2: select2.cc library.o
 	$(CC) -Wall -o $@ $< library.o
 
 select3: select3.cc library.o
-	$(CC) -Wall -o $@ $< library.0
+	$(CC) -Wall -o $@ $< library.o
+
+write_fixed_len_pages: write_fixed_len_pages.cc library.o
+	$(CC) -Wall -o $@ $< library.o
+
+read_fixed_len_pages: read_fixed_len_pages.cc library.o
+	$(CC) -Wall -o $@ $< library.o
 
 all:
 	csv2heapfile csv2colstore scan insert update delete select select2 select3
