@@ -60,18 +60,14 @@ int fixed_len_page_freeslots(Page *page) {
 }
 
 int add_fixed_len_page(Page *page, Record *r) {
-    if (0 == fixed_len_page_freeslots(page)) {
-        return -1;
-    }
-
     int slot = 0;
     for (std::vector<Record>::iterator it = page->data->begin(); it != page->data->end(); ++it) {
         if (it->empty()) {
-            break;
+            return slot;
         }
         slot ++;
     }
-    return slot;
+    return -1;
 }
 
 int main() {
