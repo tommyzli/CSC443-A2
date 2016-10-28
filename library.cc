@@ -5,6 +5,7 @@
 
 #include "library.h"
 
+
 int fixed_len_sizeof(Record *record) {
     int size = 0;
     for (Record::iterator it = record->begin(); it != record->end(); ++it) {
@@ -68,6 +69,14 @@ int add_fixed_len_page(Page *page, Record *r) {
         slot ++;
     }
     return -1;
+}
+
+void write_fixed_len_page(Page *page, int slot, Record *r) {
+    page->data->at(slot) = *r;
+}
+
+void read_fixed_len_page(Page *page, int slot, Record *r) {
+    *r = page->data->at(slot);
 }
 
 int main() {
