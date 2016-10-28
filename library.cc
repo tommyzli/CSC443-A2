@@ -34,7 +34,14 @@ void fixed_len_read(void *buf, int size, Record *record) {
 void init_fixed_len_page(Page *page, int page_size, int slot_size) {
     page->page_size = page_size;
     page->slot_size = slot_size;
-    page->data = new std::vector<Record>;
+    std::vector<Record> *data = new std::vector<Record>();
+
+    int i;
+    for (i = 0; i < fixed_len_page_capacity(page); ++i) {
+        Record *r = new Record();
+        data->push_back(*r);
+    }
+    page->data = data;
 }
 
 int fixed_len_page_capacity(Page *page) {
@@ -50,6 +57,21 @@ int fixed_len_page_freeslots(Page *page) {
     }
 
     return freeslots;
+}
+
+int add_fixed_len_page(Page *page, Record *r) {
+    if (0 == fixed_len_page_freeslots(page)) {
+        return -1;
+    }
+
+    int slot = 0;
+    for (std::vector<Record>::iterator it = page->data->begin(); it != page->data->end(); ++it) {
+        if (it->empty()) {
+            break;
+        }
+        slot ++;
+    }
+    return slot;
 }
 
 int main() {
