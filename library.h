@@ -10,6 +10,7 @@ typedef std::vector<V> Record;
 typedef struct {
     std::vector<Record> *data;
     int page_size;
+    int used_slots;
     int slot_size;
 } Page;
 
@@ -23,7 +24,7 @@ int fixed_len_sizeof(Record *record);
 void fixed_len_write(Record *record, void *buf);
 
 // Deserializes 'size' bytes from buffer 'buf' and stores the record in 'record'
-void fixed_len_read(void *buf, int size, Record *record);
+void fixed_len_read(char *buf, int size, Record *record);
 
 // Initializes a page using the given slot size
 void init_fixed_len_page(Page *page, int page_size, int slot_size);
