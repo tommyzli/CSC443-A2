@@ -21,20 +21,24 @@ void fixed_len_write(Record *record, void *buf) {
     }
 }
 
-void fixed_len_read(void *buf, int size, Record *record) {
-    V attribute;
+void fixed_len_read(char *buf, int size, Record *record) {
     for (int i = 0; i < size/ATTRIBUTE_SIZE; ++i) {
-        attribute = new char[ATTRIBUTE_SIZE + 1];
+        char* attribute = new char[ATTRIBUTE_SIZE];
         int attribute_index = i * ATTRIBUTE_SIZE;
-        memcpy(&attribute, &((char *)buf)[attribute_index], ATTRIBUTE_SIZE);
+        strncpy(attribute, buf + attribute_index, ATTRIBUTE_SIZE);
+
+        // not sure why garbage values are ending up in 'attribute'
+        attribute[ATTRIBUTE_SIZE] = '\0';
 
         record->push_back(attribute);
     }
+    std::cout << "\n";
 }
 
 void init_fixed_len_page(Page *page, int page_size, int slot_size) {
     page->page_size = page_size;
     page->slot_size = slot_size;
+    page->used_slots = 0;
     std::vector<Record> *data = new std::vector<Record>();
 
     int i;
@@ -50,19 +54,13 @@ int fixed_len_page_capacity(Page *page) {
 }
 
 int fixed_len_page_freeslots(Page *page) {
-    int freeslots = 0;
-    for (std::vector<Record>::iterator it = page->data->begin(); it != page->data->end(); ++it) {
-        if (it->empty()) {
-            freeslots++;
-        }
-    }
-
-    return freeslots;
+    return fixed_len_page_capacity(page) - page->used_slots;
 }
 
 int add_fixed_len_page(Page *page, Record *r) {
     int slot = 0;
-    for (std::vector<Record>::iterator it = page->data->begin(); it != page->data->end(); ++it) {
+    std::vector<Record> records = *(page->data);
+    for (std::vector<Record>::iterator it = records.begin(); it != records.end(); ++it) {
         if (it->empty()) {
             return slot;
         }
@@ -77,8 +75,4 @@ void write_fixed_len_page(Page *page, int slot, Record *r) {
 
 void read_fixed_len_page(Page *page, int slot, Record *r) {
     *r = page->data->at(slot);
-}
-
-int main() {
-    return 0;
 }
