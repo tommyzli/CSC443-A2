@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <string.h>
 #include <sys/timeb.h>
 #include "library.h"
 
@@ -9,6 +10,11 @@ int main(int argc, char** argv) {
         std::cout << "Error, usage must be:\n";
         std::cout << "./read_fixed_len_page <page_file> <page_size>\n";
         return 1;
+    }
+
+    bool print_records = true;
+    if (argc == 4 && strcmp(argv[3], "--no-records") == 0) {
+        print_records = false;
     }
 
     std::ifstream page_file;
@@ -24,20 +30,13 @@ int main(int argc, char** argv) {
 
     Page page;
 
-    int total_records = 0;
-    int total_pages = 0;
-
     struct timeb t;
     ftime(&t);
     long start_time_in_ms = (t.time * 1000) + t.millitm;
 
     char buf[page_size];
     while (page_file.read(buf, page_size)) {
-        int amount_read = page_file.gcount();
-        if (amount_read == 0) {
-            break;
-        }
-
+        // clear the page
         init_fixed_len_page(&page, page_size, record_size);
 
         for (int i = 0; i < fixed_len_page_capacity(&page); ++i) {
@@ -47,12 +46,14 @@ int main(int argc, char** argv) {
 
             write_fixed_len_page(&page, i, r);
 
-            // print entries in record here
-
-            total_records++;
+            // print entries in record
+            if (print_records) {
+                for (Record::iterator it = r->begin(); it != r->end(); ++it) {
+                    std::cout << *it << ",";
+                }
+                std::cout << "\n";
+            }
         }
-
-        total_pages++;
     }
 
     ftime(&t);
@@ -60,8 +61,6 @@ int main(int argc, char** argv) {
 
     page_file.close();
 
-    std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
-    std::cout << "NUMBER OF PAGES: " << total_pages << "\n";
     std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
 
     return 0;
