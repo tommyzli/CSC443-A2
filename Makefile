@@ -35,11 +35,11 @@ select3: select3.cc library.o
 write_fixed_len_pages: write_fixed_len_pages.cc library.o
 	$(CC) -g -Wall -o $@ $< library.o
 
-read_fixed_len_pages: read_fixed_len_pages.cc library.o
+read_fixed_len_page: read_fixed_len_page.cc library.o
 	$(CC) -g -Wall -o $@ $< library.o
 
 all:
-	csv2heapfile csv2colstore scan insert update delete select select2 select3 write_fixed_len_pages read_fixed_len_pages
+	csv2heapfile csv2colstore scan insert update delete select select2 select3 write_fixed_len_pages read_fixed_len_page
 
 clean:
 	rm *.o
