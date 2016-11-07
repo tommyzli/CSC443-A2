@@ -35,7 +35,9 @@ int main(int argc, char** argv) {
 
     char* buf;
 
-    // struct timeb t;
+    struct timeb t;
+    ftime(&t);
+    long start_time_in_ms = (t.time * 1000) + t.millitm;
 
     while (csv_file) {
         std::string line;
@@ -101,13 +103,14 @@ int main(int argc, char** argv) {
         page_file << buf << std::flush;
     }
 
+    ftime(&t);
+    long total_run_time = ((t.time * 1000) + t.millitm) - start_time_in_ms;
+
     csv_file.close();
     page_file.close();
 
-    free(page.data);
-
     std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
     std::cout << "NUMBER OF PAGES: " << total_pages << "\n";
-    std::cout << "TOTAL TIME: " << " milliseconds\n";
+    std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
     return 0;
 }
