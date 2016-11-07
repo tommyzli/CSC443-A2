@@ -15,15 +15,15 @@ int fixed_len_sizeof(Record *record) {
     // return ATTRIBUTE_SIZE * NUM_ATTRIBUTES;
 }
 
-void fixed_len_write(Record *record, void *buf) {
+void fixed_len_write(Record *record, char *buf) {
     for (Record::iterator it = record->begin(); it != record->end(); ++it) {
-        strcat((char *)buf, *it);
+        strcat(buf, *it);
     }
 }
 
 void fixed_len_read(char *buf, int size, Record *record) {
     for (int i = 0; i < size/ATTRIBUTE_SIZE; ++i) {
-        char* attribute = new char[ATTRIBUTE_SIZE];
+        char* attribute = new char[ATTRIBUTE_SIZE + 1];
         int attribute_index = i * ATTRIBUTE_SIZE;
         strncpy(attribute, buf + attribute_index, ATTRIBUTE_SIZE);
 
@@ -32,7 +32,6 @@ void fixed_len_read(char *buf, int size, Record *record) {
 
         record->push_back(attribute);
     }
-    std::cout << "\n";
 }
 
 void init_fixed_len_page(Page *page, int page_size, int slot_size) {
@@ -70,6 +69,9 @@ int add_fixed_len_page(Page *page, Record *r) {
 }
 
 void write_fixed_len_page(Page *page, int slot, Record *r) {
+    if (page->data->at(slot).empty()) {
+        page->used_slots++;
+    }
     page->data->at(slot) = *r;
 }
 
