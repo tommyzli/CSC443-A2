@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <string.h>
 #include <sys/timeb.h>
 #include "library.h"
 
@@ -12,16 +13,23 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_output = true;
+    if (argc == 5 && strcmp(argv[4], "--no-output") == 0) {
+        show_output = false;
+    }
+
     std::ifstream csv_file;
     csv_file.open(argv[1]);
     if (!csv_file) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
+        return 1;
     }
 
     std::ofstream page_file;
     page_file.open(argv[2]);
     if (!page_file) {
         std::cout << "Error, could not find file " << argv[2] << "\n";
+        return 1;
     }
 
     int page_size = atoi(argv[3]);
@@ -53,17 +61,15 @@ int main(int argc, char** argv) {
 
         Record *r = new Record;
 
-        // turn 'line' from string to char*
+        // turn 'line' from string to char*, and read the values into r
         fixed_len_read((char*)line.c_str(), record_size, r);
 
         int slot_index = add_fixed_len_page(&page, r);
 
-        // page is full
-        if (slot_index == -1) {
+        if (slot_index == -1) {  // page is full
 
             total_pages++;
 
-            // write page to page_file
             int buf_size = page.page_size * record_size;
             buf = new char[buf_size];
 
@@ -109,8 +115,10 @@ int main(int argc, char** argv) {
     csv_file.close();
     page_file.close();
 
-    std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
-    std::cout << "NUMBER OF PAGES: " << total_pages << "\n";
-    std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
+    if (show_output) {
+        std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
+        std::cout << "NUMBER OF PAGES: " << total_pages << "\n";
+        std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
+    }
     return 0;
 }
