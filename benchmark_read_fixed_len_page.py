@@ -33,6 +33,6 @@ if __name__ == "__main__":
         for _ in range(0, 5):
             # Generate a new page file each time to avoid filesystem cache
             subprocess.call(["./write_fixed_len_pages", "large.csv", "page_file", page_size, "--no-output"])
-            subprocess.call(["./read_fixed_len_page", "page_file", page_size, "--no-records"])
+            subprocess.call(["./read_fixed_len_page", "page_file", page_size])
             os.remove("page_file")
         print("====================================================")
