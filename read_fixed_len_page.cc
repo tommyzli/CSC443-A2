@@ -12,17 +12,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    bool print_records = true;
-    if (argc == 4 && strcmp(argv[3], "--no-records") == 0) {
-        print_records = false;
-    }
-
     std::ifstream page_file;
     page_file.open(argv[1]);
     if (!page_file) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
         return 0;
     }
+
+    std::ofstream null_out("/dev/null");
 
     int page_size = atoi(argv[2]);
 
@@ -46,13 +43,11 @@ int main(int argc, char** argv) {
 
             write_fixed_len_page(&page, i, r);
 
-            // print entries in record
-            if (print_records) {
-                for (Record::iterator it = r->begin(); it != r->end(); ++it) {
-                    std::cout << *it << ",";
-                }
-                std::cout << "\n";
+            // print entries to /dev/null
+            for (Record::iterator it = r->begin(); it != r->end(); ++it) {
+                null_out << *it << ",";
             }
+            null_out << "\n";
         }
     }
 
