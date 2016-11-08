@@ -102,7 +102,7 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
     }
 }
 
-int offset_to_last_directory_page(FILE *file) {
+int get_offset_to_last_directory_page(FILE *file) {
     fseek(file, 0, SEEK_SET);
     int offset_to_next_directory_page = 0;
     int total_offset_to_last_directory_page = 0;
@@ -121,10 +121,7 @@ int offset_to_last_directory_page(FILE *file) {
 }
 
 PageID allocate_page(Heapfile *heapfile) {
-    // find last directory page, add a DirectoryEntry or allocate a new directory page at the end of the file
-    // then allocate and write new page
-
-    int offset_to_last_directory = offset_to_last_directory_page(heapfile->file_ptr);
+    int offset_to_last_directory = get_offset_to_last_directory_page(heapfile->file_ptr);
     fseek(heapfile->file_ptr, offset_to_last_directory + sizeof(int), SEEK_SET);
 
     int page_offset = 0;
@@ -158,5 +155,10 @@ PageID allocate_page(Heapfile *heapfile) {
     }
 
     // Append empty page to file
-    return -1;
+    fseek(heapfile->file_ptr, 0, SEEK_END);
+    PageID new_page_offset = ftell(heapfile->file_ptr);
+    char new_page[heapfile->page_size] = {0};
+    fwrite(&new_page, heapfile->page_size, 1, heapfile->file_ptr);
+
+    return new_page_offset;
 }
