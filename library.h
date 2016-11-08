@@ -17,9 +17,14 @@ typedef struct {
 typedef int PageID;
 
 typedef struct {
-    int page_idd;
+    int page_id;
     int slot;
 } RecordID;
+
+typedef struct {
+    int page_offset;
+    int freespace;
+} DirectoryEntry;
 
 typedef struct {
     FILE *file_ptr;
