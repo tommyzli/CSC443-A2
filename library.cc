@@ -200,7 +200,7 @@ PageID allocate_page(Heapfile *heapfile) {
     char *new_page = new char[heapfile->page_size];
     memset(new_page, 0, heapfile->page_size*sizeof(char));
     fwrite(new_page, heapfile->page_size, 1, heapfile->file_ptr);
-    
+
     return new_page_offset / heapfile->page_size;
 }
 
@@ -241,4 +241,3 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
 
     delete[] r;
 }
-
