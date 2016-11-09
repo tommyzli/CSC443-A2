@@ -160,3 +160,23 @@ PageID allocate_page(Heapfile *heapfile) {
     // Append empty page to file
     return -1;
 }
+
+/**
+ * Read a page into memory
+ */
+void read_page(Heapfile *heapfile, PageID pid, Page *page) {
+    init_fixed_len_page(page, heapfile->page_size, NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
+    fseek(heapfile->file_ptr, pid->heapfile->page_size, SEEK_SET);
+    Record *r = new Record();
+
+    // Create a buffer and fill it with the content of the page
+    char *buf = new char[heapfile->page_size];
+    fread(buf, heapfile->page_size, 1, heapfile->file_ptr);
+
+    // Iterate over the records in the page and append to page in memory
+    for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
+        fixed_len_read(buf+i*NUM_ATTRIBUTES * ATTRIBUTE_SIZE, NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
+        page->data->push_back(*r);
+    }
+}
+
