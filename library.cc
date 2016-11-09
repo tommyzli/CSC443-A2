@@ -197,9 +197,10 @@ PageID allocate_page(Heapfile *heapfile) {
     // Append empty page to file
     fseek(heapfile->file_ptr, 0, SEEK_END);
     PageID new_page_offset = ftell(heapfile->file_ptr);
-    char new_page[heapfile->page_size] = {0};
-    fwrite(&new_page, heapfile->page_size, 1, heapfile->file_ptr);
-
+    char *new_page = new char[heapfile->page_size];
+    memset(new_page, 0, heapfile->page_size*sizeof(char));
+    fwrite(new_page, heapfile->page_size, 1, heapfile->file_ptr);
+    
     return new_page_offset / heapfile->page_size;
 }
 
@@ -225,7 +226,7 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
  */
 void read_page(Heapfile *heapfile, PageID pid, Page *page) {
     init_fixed_len_page(page, heapfile->page_size, NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
-    fseek(heapfile->file_ptr, pid->heapfile->page_size, SEEK_SET);
+    fseek(heapfile->file_ptr, pid*heapfile->page_size, SEEK_SET);
     Record *r = new Record();
 
     // Create a buffer and fill it with the content of the page
@@ -237,5 +238,7 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
         fixed_len_read(buf+i*NUM_ATTRIBUTES * ATTRIBUTE_SIZE, NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
         page->data->push_back(*r);
     }
+
+    delete[] r;
 }
 
