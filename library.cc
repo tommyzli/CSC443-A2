@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "string.h"
 #include <iostream>
+#include <stdio.h>
 #include <vector>
 
 #include "library.h"
@@ -77,4 +78,144 @@ void write_fixed_len_page(Page *page, int slot, Record *r) {
 
 void read_fixed_len_page(Page *page, int slot, Record *r) {
     *r = page->data->at(slot);
+}
+
+int number_of_pages_per_directory_page(int page_size) {
+    return (page_size - sizeof(int)) / sizeof(DirectoryEntry);
+}
+
+int get_directory_number(PageID pid, int page_size) {
+    return pid / (number_of_pages_per_directory_page(page_size) + 1);
+}
+
+/*
+ * Moves *file to the beginning of the nth directory, where n = directory_number
+ * Assumes *file has at least n directory pages
+ */
+void go_to_directory_by_directory_number(int directory_number, FILE *file) {
+    fseek(file, 0, SEEK_SET);
+    int offset_to_next_directory = 0;
+    for (int i = 0; i < directory_number; ++i) {
+        fread(&offset_to_next_directory, sizeof(int), 1, file);
+        fseek(file, offset_to_next_directory, SEEK_CUR);
+    }
+}
+
+/*
+ * Scans the directory for pid
+ * Assumes *file is at the top of a directory
+ * Moves the file pointer to the location of pid in the directory
+ */
+void search_directory(Heapfile *heapfile, PageID pid) {
+    fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);  // skip the next directory offset
+    int p;
+    for (int i = 0; i < number_of_pages_per_directory_page(heapfile->page_size); ++i) {
+        fread(&p, sizeof(int), 1, heapfile->file_ptr);
+        if (p == pid) {
+            // file pointer is now pointing to freespace of matching pid
+            break;
+        }
+        fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);
+    }
+}
+
+void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
+    heapfile->file_ptr = file;
+    heapfile->page_size = page_size;
+
+    // first 8 bytes is the offset to next page
+    int offset_to_next_directory_page = 0;
+    fwrite(&offset_to_next_directory_page, sizeof(int), 1, file);
+
+    // fill in the rest of the directory with empty entries
+    for (int i = 1; i <= number_of_pages_per_directory_page(page_size); ++i) {
+        // page_offset, starts at 1 because offset 0 is the directory page
+        fwrite(&i, sizeof(int), 1, file);
+
+        // freespace (initially set to page_size)
+        fwrite(&page_size, sizeof(int), 1, file);
+    }
+}
+
+int get_offset_to_last_directory_page(FILE *file) {
+    fseek(file, 0, SEEK_SET);
+    int offset_to_next_directory_page = 0;
+    int total_offset_to_last_directory_page = 0;
+
+    while (offset_to_next_directory_page != 0) {
+        // read offset, will be 0 if current direcory is the last in the file
+        fread(&offset_to_next_directory_page, sizeof(int), 1, file);
+
+        total_offset_to_last_directory_page += offset_to_next_directory_page;
+
+        // jump to next directory
+        fseek(file, total_offset_to_last_directory_page, SEEK_SET);
+    }
+
+    return total_offset_to_last_directory_page;
+}
+
+PageID allocate_page(Heapfile *heapfile) {
+    int offset_to_last_directory = get_offset_to_last_directory_page(heapfile->file_ptr) * heapfile->page_size;
+    fseek(heapfile->file_ptr, offset_to_last_directory + sizeof(int), SEEK_SET);
+
+    int page_offset = 0;
+    int freespace = 0;
+    for (int i = 0; i < number_of_pages_per_directory_page(heapfile->page_size); ++i) {
+        fread(&page_offset, sizeof(int), 1, heapfile->file_ptr);
+        fread(&freespace, sizeof(int), 1, heapfile->file_ptr);
+
+        if (freespace == heapfile->page_size) {
+            return page_offset;
+        }
+    }
+
+    // if you got this far, directory is full and you need a new one
+    fseek(heapfile->file_ptr, 0, SEEK_END);
+
+    // write offset of new directory into the previous
+    int current_position = ftell(heapfile->file_ptr);
+    int offset_to_new_directory = current_position - offset_to_last_directory;
+    fseek(heapfile->file_ptr, offset_to_last_directory, SEEK_SET);
+    fwrite(&offset_to_new_directory, sizeof(int), 1, heapfile->file_ptr);
+
+    fseek(heapfile->file_ptr, 0, SEEK_END);
+
+    // Write an empty directory
+    int next_directory_offset = 0;
+    fwrite(&next_directory_offset, sizeof(int), 1, heapfile->file_ptr);
+    page_offset = 0;
+    for (int i = 1; i <= number_of_pages_per_directory_page(heapfile->page_size); ++i) {
+        // offset is # pages from top of file
+        page_offset = (current_position / heapfile->page_size) + i;
+        fwrite(&page_offset, sizeof(int), 1, heapfile->file_ptr);
+
+        // freespace = page_size
+        fwrite(&heapfile->page_size, sizeof(int), 1, heapfile->file_ptr);
+    }
+
+    // Append empty page to file
+    fseek(heapfile->file_ptr, 0, SEEK_END);
+    PageID new_page_offset = ftell(heapfile->file_ptr);
+    char new_page[heapfile->page_size] = {0};
+    fwrite(&new_page, heapfile->page_size, 1, heapfile->file_ptr);
+
+    return new_page_offset / heapfile->page_size;
+}
+
+void write_page(Page *page, Heapfile *heapfile, PageID pid) {
+    // write page to disk
+    fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
+    char *buf = new char[heapfile->page_size];
+    for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
+        fixed_len_write(&(page->data)->at(i), buf);
+    }
+    fwrite(buf, heapfile->page_size, 1, heapfile->file_ptr);
+
+    // find directory containing this page's entry, and update the freespace
+    int directory_number = get_directory_number(pid, heapfile->page_size);
+    go_to_directory_by_directory_number(directory_number, heapfile->file_ptr);
+    search_directory(heapfile, pid);
+    int freespace = heapfile->page_size - (page->used_slots * NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
+    fwrite(&freespace, sizeof(int), 1, heapfile->file_ptr);
 }
