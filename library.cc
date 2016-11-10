@@ -135,6 +135,7 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
         // freespace (initially set to page_size)
         fwrite(&page_size, sizeof(int), 1, file);
     }
+    fflush(file);
 }
 
 int get_offset_to_last_directory_page(FILE *file) {
@@ -155,7 +156,7 @@ int get_offset_to_last_directory_page(FILE *file) {
     return total_offset_to_last_directory_page;
 }
 
-PageID allocate_page(Heapfile *heapfile) {
+PageID alloc_page(Heapfile *heapfile) {
     int offset_to_last_directory = get_offset_to_last_directory_page(heapfile->file_ptr) * heapfile->page_size;
     fseek(heapfile->file_ptr, offset_to_last_directory + sizeof(int), SEEK_SET);
 
