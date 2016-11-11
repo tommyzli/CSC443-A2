@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
+#include <string.h>
 #include "library.h"
 
 int main(int argc, char** argv) {
@@ -18,7 +19,7 @@ int main(int argc, char** argv) {
 
     int page_size = atoi(argv[2]);
 
-    std::ofstream null_out("/dev/null");
+    // std::ofstream null_out("/dev/null");
 
     Heapfile *heap = new Heapfile();
     heap->page_size = page_size;
@@ -47,14 +48,19 @@ int main(int argc, char** argv) {
 
                 for (int j = 0; j < fixed_len_page_capacity(&page); ++j) {
                     Record r = page.data->at(j);
+                    bool empty_record = true;
                     for (Record::iterator it = r.begin(); it != r.end(); ++it) {
-                        if (it + 1 == r.end()) {
+                        if (strlen(*it) > 0) {
+                            empty_record = false;
                             std::cout << *it;
-                        } else {
-                            std::cout << *it << ",";
+                            if (it + 1 != r.end()) {
+                                std::cout << ",";
+                            }
                         }
                     }
-                    std::cout << "\n";
+                    if (!empty_record) {
+                        std::cout << "\n";
+                    }
                 }
 
                 // return to directory location
@@ -79,14 +85,19 @@ int main(int argc, char** argv) {
 
                 for (int j = 0; j < fixed_len_page_capacity(&page); ++j) {
                     Record r = page.data->at(j);
+                    bool empty_record = true;
                     for (Record::iterator it = r.begin(); it != r.end(); ++it) {
-                        if (it + 1 == r.end()) {
+                        if (strlen(*it) > 0) {
+                            empty_record = false;
                             std::cout << *it;
-                        } else {
-                            std::cout << *it << ",";
+                            if (it + 1 != r.end()) {
+                                std::cout << ",";
+                            }
                         }
                     }
-                    std::cout << "\n";
+                    if (!empty_record) {
+                        std::cout << "\n";
+                    }
                 }
 
                 // return to directory location
