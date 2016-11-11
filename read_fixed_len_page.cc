@@ -45,7 +45,11 @@ int main(int argc, char** argv) {
 
             // print entries to /dev/null
             for (Record::iterator it = r->begin(); it != r->end(); ++it) {
-                null_out << *it << ",";
+                if (it + 1 == r->end()) {
+                    null_out << *it;
+                } else {
+                    null_out << *it << ",";
+                }
             }
             null_out << "\n";
         }

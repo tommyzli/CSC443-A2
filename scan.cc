@@ -48,9 +48,13 @@ int main(int argc, char** argv) {
                 for (int j = 0; j < fixed_len_page_capacity(&page); ++j) {
                     Record r = page.data->at(j);
                     for (Record::iterator it = r.begin(); it != r.end(); ++it) {
-                        null_out << *it << ",";
+                        if (it + 1 == r.end()) {
+                            std::cout << *it;
+                        } else {
+                            std::cout << *it << ",";
+                        }
                     }
-                    null_out << "\n";
+                    std::cout << "\n";
                 }
 
                 // return to directory location
@@ -76,9 +80,13 @@ int main(int argc, char** argv) {
                 for (int j = 0; j < fixed_len_page_capacity(&page); ++j) {
                     Record r = page.data->at(j);
                     for (Record::iterator it = r.begin(); it != r.end(); ++it) {
-                        null_out << *it << ",";
+                        if (it + 1 == r.end()) {
+                            std::cout << *it;
+                        } else {
+                            std::cout << *it << ",";
+                        }
                     }
-                    null_out << "\n";
+                    std::cout << "\n";
                 }
 
                 // return to directory location
