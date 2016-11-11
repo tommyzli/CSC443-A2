@@ -20,6 +20,7 @@ typedef struct {
     int page_id;
     int slot;
 } RecordID;
+const char RID_DELIMITER = '%';
 
 typedef struct {
     int page_offset;
