@@ -45,6 +45,7 @@ void init_fixed_len_page(Page *page, int page_size, int slot_size) {
     for (i = 0; i < fixed_len_page_capacity(page); ++i) {
         Record *r = new Record();
         data->push_back(*r);
+        delete r;
     }
     page->data = data;
 }
@@ -203,6 +204,8 @@ PageID alloc_page(Heapfile *heapfile) {
     fwrite(new_page, heapfile->page_size, 1, heapfile->file_ptr);
     fflush(heapfile->file_ptr);
 
+    delete[] new_page;
+
     return new_page_offset / heapfile->page_size;
 }
 
@@ -240,7 +243,6 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
     for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
         Record *r = new Record();
         fixed_len_read(&(*(buf + i * NUM_ATTRIBUTES * ATTRIBUTE_SIZE)), NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
-        //page->data->push_back(*r);
         write_fixed_len_page(page, i, r);
         delete r;
     }
