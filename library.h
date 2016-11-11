@@ -73,6 +73,9 @@ class RecordIterator {
         bool hasNext();
 };
 
+// Returns max # of directory entries that can fit into one page
+int number_of_pages_per_directory_page(int page_size);
+
 // Initialize a heapfile to use the file and page size given.
 void init_heapfile(Heapfile *heapfile, int page_size, FILE *file);
 
