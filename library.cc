@@ -201,6 +201,7 @@ PageID alloc_page(Heapfile *heapfile) {
     char *new_page = new char[heapfile->page_size];
     memset(new_page, 0, heapfile->page_size*sizeof(char));
     fwrite(new_page, heapfile->page_size, 1, heapfile->file_ptr);
+    fflush(heapfile->file_ptr);
 
     return new_page_offset / heapfile->page_size;
 }
@@ -209,6 +210,7 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     // write page to disk
     fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
     char *buf = new char[heapfile->page_size];
+    buf[0] = '\0'; // cut off garbage values
     for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
         fixed_len_write(&(page->data)->at(i), buf);
     }
@@ -220,6 +222,7 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     search_directory(heapfile, pid);
     int freespace = heapfile->page_size - (page->used_slots * NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
     fwrite(&freespace, sizeof(int), 1, heapfile->file_ptr);
+    fflush(heapfile->file_ptr);
 }
 
 /**
@@ -228,7 +231,6 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
 void read_page(Heapfile *heapfile, PageID pid, Page *page) {
     init_fixed_len_page(page, heapfile->page_size, NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
     fseek(heapfile->file_ptr, pid*heapfile->page_size, SEEK_SET);
-    Record *r = new Record();
 
     // Create a buffer and fill it with the content of the page
     char *buf = new char[heapfile->page_size];
@@ -236,9 +238,10 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
 
     // Iterate over the records in the page and append to page in memory
     for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
-        fixed_len_read(buf+i*NUM_ATTRIBUTES * ATTRIBUTE_SIZE, NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
-        page->data->push_back(*r);
+        Record *r = new Record();
+        fixed_len_read(&(*(buf + i * NUM_ATTRIBUTES * ATTRIBUTE_SIZE)), NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
+        //page->data->push_back(*r);
+        write_fixed_len_page(page, i, r);
+        delete r;
     }
-
-    delete[] r;
 }
