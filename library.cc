@@ -106,18 +106,20 @@ void go_to_directory_by_directory_number(int directory_number, FILE *file) {
  * Scans the directory for pid
  * Assumes *file is at the top of a directory
  * Moves the file pointer to the location of pid in the directory
+ * Returns 1 if successful, -1 if not
  */
-void search_directory(Heapfile *heapfile, PageID pid) {
+int search_directory(Heapfile *heapfile, PageID pid) {
     fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);  // skip the next directory offset
     int p;
     for (int i = 0; i < number_of_pages_per_directory_page(heapfile->page_size); ++i) {
         fread(&p, sizeof(int), 1, heapfile->file_ptr);
         if (p == pid) {
             // file pointer is now pointing to freespace of matching pid
-            break;
+            return 1;
         }
         fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);
     }
+    return -1;
 }
 
 void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
@@ -222,7 +224,10 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     // find directory containing this page's entry, and update the freespace
     int directory_number = get_directory_number(pid, heapfile->page_size);
     go_to_directory_by_directory_number(directory_number, heapfile->file_ptr);
-    search_directory(heapfile, pid);
+    int found = search_directory(heapfile, pid);
+    if (!found) {
+        throw;  // RIP
+    }
     int freespace = heapfile->page_size - (page->used_slots * NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
     fwrite(&freespace, sizeof(int), 1, heapfile->file_ptr);
     fflush(heapfile->file_ptr);
