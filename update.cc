@@ -35,11 +35,35 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::string new_value = argv[4];
-    if (new_value.length() != 10) {
-        std::cout << "Error, new_value must be 10 characters long\n";
+    char *new_value = argv[4];
+    if (strlen(new_value) != 10) {
+        std::cout << "Error, new_value is " << strlen(new_value) << " characters, but must be 10 characters long\n";
         return 1;
     }
 
     int page_size = atoi(argv[5]);
+
+    Heapfile *heap = new Heapfile();
+    heap->page_size = page_size;
+    heap->file_ptr = heapfile;
+
+    Page page;
+    read_page(heap, rid->page_id, &page);
+    if (rid->slot > fixed_len_page_capacity(&page)) {
+        std::cout << "Error, slot_number " << rid->slot << " is invalid\n";
+        return 1;
+    }
+
+    Record record_to_update = page.data->at(rid->slot);
+    if (record_to_update.empty()) {
+        std::cout << "Error, no record found at slot " << rid->slot << "\n";
+        return 1;
+    }
+    record_to_update.at(attribute_id) = new_value;
+    write_page(&page, heap, rid->page_id);
+
+    delete heap;
+    delete rid;
+    fclose(heapfile);
+    return 0;
 }
