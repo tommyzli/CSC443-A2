@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     page_file.open(argv[1]);
     if (!page_file) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
-        return 0;
+        return 1;
     }
 
     std::ofstream null_out("/dev/null");
