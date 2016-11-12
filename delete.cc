@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
     heap->file_ptr = heapfile;
 
     Page page;
+    // write an empty record into the slot to delete
     Record *empty_record = new Record();
     read_page(heap, rid->page_id, &page);
     if (!page.data->at(rid->slot).empty()) {
