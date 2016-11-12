@@ -57,9 +57,9 @@ int main(int argc, char** argv) {
     for (int i = 0; i < fixed_len_page_capacity(&page); i++) {
         fixed_len_write(&page_data->at(i), buf);
     }
-    std::cout << buf << "\n";
 
     write_page(&page, heap, new_pid);
+    std::cout << "pid " << new_pid << "\n";
     delete r2;
 
 
