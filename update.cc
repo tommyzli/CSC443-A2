@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
     rid->slot = atoi(serialized_record_id.substr(delimiter_position + 1).c_str());
 
     int attribute_id = atoi(argv[3]);
-    if (attribute_id < 0 || attribute_id > (NUM_ATTRIBUTES * ATTRIBUTE_SIZE) - 1) {
-        std::cout << "Error, attribute_id must be between 0 and 99\n";
+    if (attribute_id < 0 || attribute_id >= NUM_ATTRIBUTES) {
+        std::cout << "Error, attribute_id is " << attribute_id << ", but must be between 0 and 99\n";
         return 1;
     }
 
