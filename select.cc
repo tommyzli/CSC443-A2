@@ -12,6 +12,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_output = true;
+    if (argc == 7 && strcmp(argv[6], "--benchmark-mode") == 0) {
+        show_output = false;
+    }
+
+    std::ofstream null_out("/dev/null");
+
     FILE* heapfile = fopen(argv[1], "r");
     if (!heapfile) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
@@ -71,7 +78,12 @@ int main(int argc, char** argv) {
                         char *output_substring = new char[6];
                         strncpy(output_substring, r.at(attribute_id), 5);
                         output_substring[5] = '\0';
-                        std::cout << output_substring << "\n";
+
+                        if (show_output) {
+                            std::cout << output_substring << "\n";
+                        } else {
+                            null_out << output_substring << "\n";
+                        }
                         delete output_substring;
                     }
                 }
@@ -108,7 +120,13 @@ int main(int argc, char** argv) {
                         char *output_substring = new char[6];
                         strncpy(output_substring, r.at(attribute_id), 5);
                         output_substring[5] = '\0';
-                        std::cout << output_substring << "\n";
+
+                        if (show_output) {
+                            std::cout << output_substring << "\n";
+                        } else {
+                            null_out << output_substring << "\n";
+                        }
+
                         delete output_substring;
                     }
                 }
