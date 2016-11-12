@@ -31,7 +31,9 @@ void fixed_len_read(char *buf, int size, Record *record) {
         // not sure why garbage values are ending up in 'attribute'
         attribute[ATTRIBUTE_SIZE] = '\0';
 
-        record->push_back(attribute);
+        if (strlen(attribute) > 0) {
+            record->push_back(attribute);
+        }
     }
 }
 
@@ -71,7 +73,8 @@ int add_fixed_len_page(Page *page, Record *r) {
 }
 
 void write_fixed_len_page(Page *page, int slot, Record *r) {
-    if (page->data->at(slot).empty()) {
+    // only increase count if prev is empty and new is not empty
+    if (page->data->at(slot).empty() && !r->empty()) {
         page->used_slots++;
     }
     page->data->at(slot) = *r;
