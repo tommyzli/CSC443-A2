@@ -18,9 +18,9 @@ PAGE_SIZES = [
 ]
 
 SELECT_RANGES = [
-    ("A", "Z"),
-    ("A", "M"),
-    ("A", "B"),
+    ("A", "Z"),  # select all
+    ("A", "M"),  # select half
+    ("A", "B"),  # select few
 ]
 
 CSV_FILE_SIZE = "100000"  # number of tuples to generate
@@ -39,7 +39,7 @@ if __name__ == "__main__":
             # Generate new heap file each time to avoid the filesystem cache
             subprocess.call(["./csv2heapfile", CSV_FILE_NAME, "heap_file", page_size])
 
-            subprocess.call(["./select", "heap_file", start, end, page_size, "--benchmark-mode"])
+            subprocess.call(["./select", "heap_file", "0", start, end, page_size, "--benchmark-mode"])
 
             os.remove("heap_file")
             print("====================================================")
