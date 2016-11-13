@@ -13,6 +13,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_output = true;
+    if (argc == 5 && strcmp(argv[4], "--no-output") == 0) {
+        show_output = false;
+    }
+
     // open csv file
     std::ifstream csv_file;
     csv_file.open(argv[1]);
@@ -28,13 +33,6 @@ int main(int argc, char** argv) {
     Page page;
     init_fixed_len_page(&page, page_size, record_size);
 
-    // timing and counting stuff
-    struct timeb t;
-    ftime(&t);
-    long start_time_in_ms = (t.time * 1000) + t.millitm;
-
-    int total_records = 0;
-
     // initialize heapfile
     Heapfile *heap = new Heapfile();
     FILE* heap_file = fopen(argv[2], "w+b");
@@ -48,6 +46,12 @@ int main(int argc, char** argv) {
     PageID pageID = alloc_page(heap);
     read_page(heap, pageID, &page);
 
+    // timing and counting stuff
+    struct timeb t;
+    ftime(&t);
+    long start_time_in_ms = (t.time * 1000) + t.millitm;
+
+    int total_records = 0;
     while (csv_file) {
 
         std::string line;
