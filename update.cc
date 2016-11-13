@@ -54,12 +54,12 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Record record_to_update = page.data->at(rid->slot);
-    if (record_to_update.empty()) {
+    if (page.data->at(rid->slot).empty()) {
         std::cout << "Error, no record found at slot " << rid->slot << "\n";
         return 1;
     }
-    record_to_update.at(attribute_id) = new_value;
+
+    page.data->at(rid->slot).at(attribute_id) = new_value;
     write_page(&page, heap, rid->page_id);
 
     delete heap;
