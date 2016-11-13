@@ -12,12 +12,7 @@ int main(int argc, char** argv) {
         std::cout << "./csv2heapfile <csv_file> <heapfile> <page_size>\n";
         return 1;
     }
-/*    
-    bool show_output = true;
-    if (argc == 5 && strcmp(argv[4], "--no-output") == 0) {
-        show_output = false;
-    }
-*/
+
     // open csv file
     std::ifstream csv_file;
     csv_file.open(argv[1]);
@@ -33,11 +28,12 @@ int main(int argc, char** argv) {
     Page page;
     init_fixed_len_page(&page, page_size, record_size);
 
-/*
+    // timing and counting stuff
     struct timeb t;
     ftime(&t);
     long start_time_in_ms = (t.time * 1000) + t.millitm;
-*/
+
+    int total_records = 0;
 
     // initialize heapfile
     Heapfile *heap = new Heapfile();
@@ -100,7 +96,8 @@ int main(int argc, char** argv) {
         }
 
         write_fixed_len_page(&page, slot_index, r);
-
+        
+	total_records++;
     }
 
     // write last page to file if it has records
@@ -120,11 +117,15 @@ int main(int argc, char** argv) {
 	write_page(&page, heap, pageID);
     }
 
-//    ftime(&t);
-//    long total_run_time = ((t.time * 1000) + t.millitm) - start_time_in_ms;
+    ftime(&t);
+    long total_run_time = ((t.time * 1000) + t.millitm) - start_time_in_ms;
 
     csv_file.close();
-    
+
+    std::cout<<"RUN TIME: "<<total_run_time<<" milliseconds\n";
+    std::cout<<"TOTAL RECORDS: "<<total_records<<"\n";
+
+    return 0;
 }
 
 
