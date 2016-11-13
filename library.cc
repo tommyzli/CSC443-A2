@@ -31,7 +31,9 @@ void fixed_len_read(char *buf, int size, Record *record) {
         // not sure why garbage values are ending up in 'attribute'
         attribute[ATTRIBUTE_SIZE] = '\0';
 
-        record->push_back(attribute);
+        if (strlen(attribute) > 0) {
+            record->push_back(attribute);
+        }
     }
 }
 
@@ -45,6 +47,7 @@ void init_fixed_len_page(Page *page, int page_size, int slot_size) {
     for (i = 0; i < fixed_len_page_capacity(page); ++i) {
         Record *r = new Record();
         data->push_back(*r);
+        delete r;
     }
     page->data = data;
 }
@@ -70,7 +73,8 @@ int add_fixed_len_page(Page *page, Record *r) {
 }
 
 void write_fixed_len_page(Page *page, int slot, Record *r) {
-    if (page->data->at(slot).empty()) {
+    // only increase count if prev is empty and new is not empty
+    if (page->data->at(slot).empty() && !r->empty()) {
         page->used_slots++;
     }
     page->data->at(slot) = *r;
@@ -105,18 +109,20 @@ void go_to_directory_by_directory_number(int directory_number, FILE *file) {
  * Scans the directory for pid
  * Assumes *file is at the top of a directory
  * Moves the file pointer to the location of pid in the directory
+ * Returns 1 if successful, -1 if not
  */
-void search_directory(Heapfile *heapfile, PageID pid) {
+int search_directory(Heapfile *heapfile, PageID pid) {
     fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);  // skip the next directory offset
     int p;
     for (int i = 0; i < number_of_pages_per_directory_page(heapfile->page_size); ++i) {
         fread(&p, sizeof(int), 1, heapfile->file_ptr);
         if (p == pid) {
             // file pointer is now pointing to freespace of matching pid
-            break;
+            return 1;
         }
         fseek(heapfile->file_ptr, sizeof(int), SEEK_CUR);
     }
+    return -1;
 }
 
 void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
@@ -135,6 +141,7 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE *file) {
         // freespace (initially set to page_size)
         fwrite(&page_size, sizeof(int), 1, file);
     }
+    fflush(file);
 }
 
 int get_offset_to_last_directory_page(FILE *file) {
@@ -155,7 +162,7 @@ int get_offset_to_last_directory_page(FILE *file) {
     return total_offset_to_last_directory_page;
 }
 
-PageID allocate_page(Heapfile *heapfile) {
+PageID alloc_page(Heapfile *heapfile) {
     int offset_to_last_directory = get_offset_to_last_directory_page(heapfile->file_ptr) * heapfile->page_size;
     fseek(heapfile->file_ptr, offset_to_last_directory + sizeof(int), SEEK_SET);
 
@@ -200,7 +207,10 @@ PageID allocate_page(Heapfile *heapfile) {
     char *new_page = new char[heapfile->page_size];
     memset(new_page, 0, heapfile->page_size*sizeof(char));
     fwrite(new_page, heapfile->page_size, 1, heapfile->file_ptr);
-    
+    fflush(heapfile->file_ptr);
+
+    delete[] new_page;
+
     return new_page_offset / heapfile->page_size;
 }
 
@@ -208,6 +218,7 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     // write page to disk
     fseek(heapfile->file_ptr, pid * heapfile->page_size, SEEK_SET);
     char *buf = new char[heapfile->page_size];
+    buf[0] = '\0'; // cut off garbage values
     for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
         fixed_len_write(&(page->data)->at(i), buf);
     }
@@ -216,9 +227,13 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     // find directory containing this page's entry, and update the freespace
     int directory_number = get_directory_number(pid, heapfile->page_size);
     go_to_directory_by_directory_number(directory_number, heapfile->file_ptr);
-    search_directory(heapfile, pid);
+    int found = search_directory(heapfile, pid);
+    if (!found) {
+        throw;  // RIP
+    }
     int freespace = heapfile->page_size - (page->used_slots * NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
     fwrite(&freespace, sizeof(int), 1, heapfile->file_ptr);
+    fflush(heapfile->file_ptr);
 }
 
 /**
@@ -227,7 +242,6 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
 void read_page(Heapfile *heapfile, PageID pid, Page *page) {
     init_fixed_len_page(page, heapfile->page_size, NUM_ATTRIBUTES * ATTRIBUTE_SIZE);
     fseek(heapfile->file_ptr, pid*heapfile->page_size, SEEK_SET);
-    Record *r = new Record();
 
     // Create a buffer and fill it with the content of the page
     char *buf = new char[heapfile->page_size];
@@ -235,10 +249,9 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
 
     // Iterate over the records in the page and append to page in memory
     for (int i = 0; i < fixed_len_page_capacity(page); ++i) {
-        fixed_len_read(buf+i*NUM_ATTRIBUTES * ATTRIBUTE_SIZE, NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
-        page->data->push_back(*r);
+        Record *r = new Record();
+        fixed_len_read(&(*(buf + i * NUM_ATTRIBUTES * ATTRIBUTE_SIZE)), NUM_ATTRIBUTES * ATTRIBUTE_SIZE, r);
+        write_fixed_len_page(page, i, r);
+        delete r;
     }
-
-    delete[] r;
 }
-
