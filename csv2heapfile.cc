@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     if (!csv_file) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
         return 1;
-    }    
+    }
 
     // initialize page
     int page_size = atoi(argv[3]);
@@ -39,15 +39,15 @@ int main(int argc, char** argv) {
     Heapfile *heap = new Heapfile();
     FILE* heap_file = fopen(argv[2], "w+b");
     if (!heap_file) {
-	std::cout << "Error, could not find file " << argv[2] << "\n";
+    std::cout << "Error, could not find file " << argv[2] << "\n";
         return 1;
     }
 
     init_heapfile(heap, atoi(argv[3]), heap_file);
-    
+
     PageID pageID = alloc_page(heap);
     read_page(heap, pageID, &page);
-    
+
     while (csv_file) {
 
         std::string line;
@@ -68,31 +68,29 @@ int main(int argc, char** argv) {
 
         int slot_index = add_fixed_len_page(&page, r);
 
-	if (slot_index == -1) {  // page is full
-	    
-	    // write page to heap (disk)
-	    write_page(&page, heap, pageID);
+        if (slot_index == -1) {  // page is full
+            // write page to heap (disk)
+            write_page(&page, heap, pageID);
 
             // allocate new page
             pageID = alloc_page(heap);
-                
-	    // read the new page
-	    read_page(heap, pageID, &page);
 
-	    // recalculate slot index
+            // read the new page
+            read_page(heap, pageID, &page);
+
+            // recalculate slot index
             slot_index = add_fixed_len_page(&page, r);
         }
 
         write_fixed_len_page(&page, slot_index, r);
-        
-	total_records++;
+
+        total_records++;
     }
 
     // write last page to file if it has records
     if (page.used_slots > 0) {
-
-	// write page to heap (disk)
-	write_page(&page, heap, pageID);
+        // write page to heap (disk)
+        write_page(&page, heap, pageID);
     }
 
     ftime(&t);
@@ -100,10 +98,8 @@ int main(int argc, char** argv) {
 
     csv_file.close();
 
-    std::cout<<"RUN TIME: "<<total_run_time<<" milliseconds\n";
-    std::cout<<"TOTAL RECORDS: "<<total_records<<"\n";
+    std::cout << "RUN TIME: " << total_run_time << " milliseconds\n";
+    std::cout << "TOTAL RECORDS: " << total_records << "\n";
 
     return 0;
 }
-
-
