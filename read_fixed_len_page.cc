@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     page_file.open(argv[1]);
     if (!page_file) {
         std::cout << "Error, could not find file " << argv[1] << "\n";
-        return 0;
+        return 1;
     }
 
     std::ofstream null_out("/dev/null");
@@ -45,7 +45,11 @@ int main(int argc, char** argv) {
 
             // print entries to /dev/null
             for (Record::iterator it = r->begin(); it != r->end(); ++it) {
-                null_out << *it << ",";
+                if (it + 1 == r->end()) {
+                    null_out << *it;
+                } else {
+                    null_out << *it << ",";
+                }
             }
             null_out << "\n";
         }
