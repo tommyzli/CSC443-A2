@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
         show_output = false;
     }
 */
+    // open csv file
     std::ifstream csv_file;
     csv_file.open(argv[1]);
     if (!csv_file) {
@@ -25,18 +26,20 @@ int main(int argc, char** argv) {
         return 1;
     }    
 
+    // initialize page
     int page_size = atoi(argv[3]);
     int record_size = NUM_ATTRIBUTES * ATTRIBUTE_SIZE;
 
     Page page;
     init_fixed_len_page(&page, page_size, record_size);
 
-    char* buf;
 /*
     struct timeb t;
     ftime(&t);
     long start_time_in_ms = (t.time * 1000) + t.millitm;
 */
+
+    // initialize heapfile
     Heapfile *heap = new Heapfile();
     FILE* heap_file = fopen(argv[2], "w+b");
     if (!heap_file) {
@@ -49,6 +52,9 @@ int main(int argc, char** argv) {
     PageID pageID = allocate_page(heap);
     read_page(heap, pageID, &page);
 
+    // create buffer to read csv file
+    char* buf;
+    
     while (csv_file) {
 
         std::string line;
@@ -86,7 +92,7 @@ int main(int argc, char** argv) {
             // allocate new page
             pageID = allocate_page(heap);
             
-	    // read new page
+	    // read the new page
 	    read_page(heap, pageID, &page);
 
 	    // recalculate slot index
@@ -96,6 +102,7 @@ int main(int argc, char** argv) {
         write_fixed_len_page(&page, slot_index, r);
 
     }
+
     // write last page to file if it has records
     if (page.used_slots > 0) {
         
@@ -109,6 +116,8 @@ int main(int argc, char** argv) {
             }
         }
 
+	// write page to heap (disk)
+	write_page(&page, heap, pageID);
     }
 
 //    ftime(&t);
