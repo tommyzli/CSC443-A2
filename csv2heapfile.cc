@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     init_heapfile(heap, atoi(argv[3]), heap_file);
     
-    PageID pageID = allocate_page(heap);
+    PageID pageID = alloc_page(heap);
     read_page(heap, pageID, &page);
 
     // create buffer to read csv file
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 	    write_page(&page, heap, pageID);
 
             // allocate new page
-            pageID = allocate_page(heap);
+            pageID = alloc_page(heap);
             
 	    // read the new page
 	    read_page(heap, pageID, &page);
