@@ -102,8 +102,9 @@ int main(int argc, char** argv) {
 
     csv_file.close();
 
-    std::cout << "RUN TIME: " << total_run_time << " milliseconds\n";
-    std::cout << "TOTAL RECORDS: " << total_records << "\n";
-
+    if (show_output) {
+        std::cout << "RUN TIME: " << total_run_time << " milliseconds\n";
+        std::cout << "TOTAL RECORDS: " << total_records << "\n";
+    }
     return 0;
 }
