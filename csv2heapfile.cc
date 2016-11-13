@@ -47,9 +47,6 @@ int main(int argc, char** argv) {
     
     PageID pageID = alloc_page(heap);
     read_page(heap, pageID, &page);
-
-    // create buffer to read csv file
-    char* buf;
     
     while (csv_file) {
 
@@ -71,28 +68,19 @@ int main(int argc, char** argv) {
 
         int slot_index = add_fixed_len_page(&page, r);
 
-	    if (slot_index == -1) {  // page is full
-
-                // write page to page_file
-                int buf_size = page.page_size * record_size;
-                buf = new char[buf_size];
-
-                std::vector<Record> *page_data = page.data;
-                for (int i = 0; i < fixed_len_page_capacity(&page); i++) {
-                    fixed_len_write(&page_data->at(i), buf);
-                }
+	if (slot_index == -1) {  // page is full
 	    
-	        // write page to heap (disk)
-	        write_page(&page, heap, pageID);
+	    // write page to heap (disk)
+	    write_page(&page, heap, pageID);
 
-                // allocate new page
-                pageID = alloc_page(heap);
+            // allocate new page
+            pageID = alloc_page(heap);
                 
-	        // read the new page
-	        read_page(heap, pageID, &page);
+	    // read the new page
+	    read_page(heap, pageID, &page);
 
-	        // recalculate slot index
-                slot_index = add_fixed_len_page(&page, r);
+	    // recalculate slot index
+            slot_index = add_fixed_len_page(&page, r);
         }
 
         write_fixed_len_page(&page, slot_index, r);
@@ -102,16 +90,6 @@ int main(int argc, char** argv) {
 
     // write last page to file if it has records
     if (page.used_slots > 0) {
-        
-        // write page to page_file
-        int buf_size = page.page_size * record_size;
-        buf = new char[buf_size];
-        std::vector<Record> *page_data = page.data;
-        for (int i = 0; i < fixed_len_page_capacity(&page); i++) {
-            if (!page_data->at(i).empty()) {
-                fixed_len_write(&(page_data->at(i)), buf);
-            }
-        }
 
 	// write page to heap (disk)
 	write_page(&page, heap, pageID);
