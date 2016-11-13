@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     Heapfile *heap = new Heapfile();
     FILE* heap_file = fopen(argv[2], "w+b");
     if (!heap_file) {
-	    std::cout << "Error, could not find file " << argv[2] << "\n";
+	std::cout << "Error, could not find file " << argv[2] << "\n";
         return 1;
     }
 
@@ -73,31 +73,31 @@ int main(int argc, char** argv) {
 
 	    if (slot_index == -1) {  // page is full
 
-            // write page to page_file
-            int buf_size = page.page_size * record_size;
-            buf = new char[buf_size];
+                // write page to page_file
+                int buf_size = page.page_size * record_size;
+                buf = new char[buf_size];
 
-            std::vector<Record> *page_data = page.data;
-            for (int i = 0; i < fixed_len_page_capacity(&page); i++) {
-                fixed_len_write(&page_data->at(i), buf);
-            }
+                std::vector<Record> *page_data = page.data;
+                for (int i = 0; i < fixed_len_page_capacity(&page); i++) {
+                    fixed_len_write(&page_data->at(i), buf);
+                }
 	    
 	        // write page to heap (disk)
 	        write_page(&page, heap, pageID);
 
-            // allocate new page
-            pageID = alloc_page(heap);
+                // allocate new page
+                pageID = alloc_page(heap);
                 
 	        // read the new page
 	        read_page(heap, pageID, &page);
 
 	        // recalculate slot index
-            slot_index = add_fixed_len_page(&page, r);
+                slot_index = add_fixed_len_page(&page, r);
         }
 
         write_fixed_len_page(&page, slot_index, r);
         
-	    total_records++;
+	total_records++;
     }
 
     // write last page to file if it has records
@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
             }
         }
 
-	    // write page to heap (disk)
-	    write_page(&page, heap, pageID);
+	// write page to heap (disk)
+	write_page(&page, heap, pageID);
     }
 
     ftime(&t);
