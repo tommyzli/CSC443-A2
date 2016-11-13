@@ -88,7 +88,6 @@ int main(int argc, char** argv) {
         Record *col_record = new Record();
         for (size_t j = 0; j < all_records->size(); ++j){
             if (col_record->size() == NUM_ATTRIBUTES) {  // record is full
-                // write record to page
                 int slot_index = add_fixed_len_page(&page, col_record);
                 if (slot_index == -1) {  // page is full
                     // write to disk and empty page
@@ -107,7 +106,6 @@ int main(int argc, char** argv) {
                 col_record = new Record();
             }
 
-            std::cout << "Record #" << j << " and column #" << i <<": value = " << all_records->at(j).at(i) << "\n";
             col_record->push_back(all_records->at(j).at(i));
         }
 
