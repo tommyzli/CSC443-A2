@@ -41,8 +41,7 @@ read_fixed_len_page: read_fixed_len_page.cc library.o
 test_heapfile: test_heapfile.cc library.o
 	$(CC) -g -Wall -o $@ $< library.o
 
-all:
-	csv2heapfile csv2colstore scan insert update delete select select2 select3 write_fixed_len_pages read_fixed_len_page
+all: csv2heapfile csv2colstore scan insert update delete select select2 select3 write_fixed_len_pages read_fixed_len_page
 
 clean:
 	rm *.o
