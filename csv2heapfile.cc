@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     Heapfile *heap = new Heapfile();
     FILE* heap_file = fopen(argv[2], "w+b");
     if (!heap_file) {
-	std::cout << "Error, could not find file " << argv[2] << "\n";
+	    std::cout << "Error, could not find file " << argv[2] << "\n";
         return 1;
     }
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
         int slot_index = add_fixed_len_page(&page, r);
 
-	if (slot_index == -1) {  // page is full
+	    if (slot_index == -1) {  // page is full
 
             // write page to page_file
             int buf_size = page.page_size * record_size;
@@ -82,22 +82,22 @@ int main(int argc, char** argv) {
                 fixed_len_write(&page_data->at(i), buf);
             }
 	    
-	    // write page to heap (disk)
-	    write_page(&page, heap, pageID);
+	        // write page to heap (disk)
+	        write_page(&page, heap, pageID);
 
             // allocate new page
             pageID = alloc_page(heap);
-            
-	    // read the new page
-	    read_page(heap, pageID, &page);
+                
+	        // read the new page
+	        read_page(heap, pageID, &page);
 
-	    // recalculate slot index
+	        // recalculate slot index
             slot_index = add_fixed_len_page(&page, r);
         }
 
         write_fixed_len_page(&page, slot_index, r);
         
-	total_records++;
+	    total_records++;
     }
 
     // write last page to file if it has records
@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
             }
         }
 
-	// write page to heap (disk)
-	write_page(&page, heap, pageID);
+	    // write page to heap (disk)
+	    write_page(&page, heap, pageID);
     }
 
     ftime(&t);
