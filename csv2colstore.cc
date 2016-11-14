@@ -15,6 +15,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_output = true;
+    if (argc == 5 && strcmp(argv[4], "--no-output") == 0) {
+        show_output = false;
+    }
+
     std::ifstream csv_file;
     csv_file.open(argv[1]);
     if (!csv_file) {
@@ -64,6 +69,8 @@ int main(int argc, char** argv) {
         total_records++;
     }
 
+    csv_file.close();
+
     // create column file for each attribute
     for (int i = 0; i < NUM_ATTRIBUTES; ++i) {
         // column file should be /{directory_path}/{column_index}
@@ -81,9 +88,8 @@ int main(int argc, char** argv) {
         Heapfile *heap = new Heapfile();
         init_heapfile(heap, page_size, column_heapfile);
 
-
         Page page;
-        init_fixed_len_page(&page, page_size, ATTRIBUTE_SIZE);
+        init_fixed_len_page(&page, page_size, record_size);
 
         Record *col_record = new Record();
         for (size_t j = 0; j < all_records->size(); ++j){
@@ -137,10 +143,10 @@ int main(int argc, char** argv) {
     ftime(&t);
     long total_run_time = ((t.time * 1000) + t.millitm) - start_time_in_ms;
 
-    csv_file.close();
-
-    std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
-    std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
+    if (show_output) {
+        std::cout << "TOTAL TIME: " << total_run_time << " milliseconds\n";
+        std::cout << "NUMBER OF RECORDS: " << total_records << "\n";
+    }
 
     return 0;
 }
