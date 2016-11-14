@@ -93,46 +93,28 @@ int main(int argc, char** argv) {
 
         Record *col_record = new Record();
         for (size_t j = 0; j < all_records->size(); ++j){
-            if (col_record->size() == NUM_ATTRIBUTES) {  // record is full
+            col_record->push_back(all_records->at(j).at(i));
+
+            if (col_record->size() == NUM_ATTRIBUTES) {
+                // record is full, add to page
                 int slot_index = add_fixed_len_page(&page, col_record);
                 if (slot_index == -1) {  // page is full
-                    // write to disk and empty page
-                    PageID new_pid = alloc_page(heap);
-                    write_page(&page, heap, new_pid);
+                    // write page to disk
+                    PageID pid = alloc_page(heap);
+                    write_page(&page, heap, pid);
 
-                    // allocate empty page
                     init_fixed_len_page(&page, page_size, record_size);
-                    // recalculate slot index
                     slot_index = add_fixed_len_page(&page, col_record);
                 }
 
                 write_fixed_len_page(&page, slot_index, col_record);
-
-                // empty the record
-                col_record = new Record();
+                col_record->clear();
             }
-
-            col_record->push_back(all_records->at(j).at(i));
         }
 
-        if (col_record->size() > 0) {
-            // write record to page
-            int slot_index = add_fixed_len_page(&page, col_record);
-            if (slot_index == -1) {  // page is full
-                // write to disk and empty page
-                PageID new_pid = alloc_page(heap);
-                write_page(&page, heap, new_pid);
-
-                // allocate empty page
-                init_fixed_len_page(&page, page_size, record_size);
-                // recalculate slot index
-                slot_index = add_fixed_len_page(&page, col_record);
-            }
-
-            write_fixed_len_page(&page, slot_index, col_record);
-            // write to disk and empty page
-            PageID new_pid = alloc_page(heap);
-            write_page(&page, heap, new_pid);
+        if (page.used_slots > 0) {
+            PageID pid = alloc_page(heap);
+            write_page(&page, heap, pid);
         }
 
         delete col_record;
