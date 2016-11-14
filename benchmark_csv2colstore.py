@@ -28,7 +28,7 @@ if __name__ == "__main__":
         subprocess.call(["./mkcsv.py", CSV_FILE_NAME, CSV_FILE_SIZE])
 
     # ignore first read, try to have file system cache out.csv
-    subprocess.call(["./colstore", CSV_FILE_SIZE, "colstore", "65536", "--no-output"])
+    subprocess.call(["./csv2colstore", CSV_FILE_NAME, "colstore", "65536", "--no-output"])
     shutil.rmtree("colstore")
 
     for page_size in PAGE_SIZES:

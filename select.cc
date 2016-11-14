@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
                         continue;
                     }
 
-                    if (strncmp(r.at(attribute_id), start, 5) >= 0 && strncmp(r.at(attribute_id), end, 5) <= 0) {
+                    if (strcmp(r.at(attribute_id), start) >= 0 && strcmp(r.at(attribute_id), end) <= 0) {
                         num_matching_records++;
                         char *output_substring = new char[6];
                         strncpy(output_substring, r.at(attribute_id), 5);
