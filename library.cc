@@ -224,6 +224,8 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid) {
     }
     fwrite(buf, heapfile->page_size, 1, heapfile->file_ptr);
 
+    delete buf;
+
     // find directory containing this page's entry, and update the freespace
     int directory_number = get_directory_number(pid, heapfile->page_size);
     go_to_directory_by_directory_number(directory_number, heapfile->file_ptr);
@@ -254,4 +256,6 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page) {
         write_fixed_len_page(page, i, r);
         delete r;
     }
+
+    delete buf;
 }

@@ -12,6 +12,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_output = true;
+    if (argc == 4 && strcmp(argv[3], "--benchmark-mode") == 0) {
+        show_output = false;
+    }
+
     std::ifstream page_file;
     page_file.open(argv[1]);
     if (!page_file) {
@@ -46,12 +51,24 @@ int main(int argc, char** argv) {
             // print entries to /dev/null
             for (Record::iterator it = r->begin(); it != r->end(); ++it) {
                 if (it + 1 == r->end()) {
-                    null_out << *it;
+                    if (show_output) {
+                        std::cout << *it;
+                    } else {
+                        null_out << *it;
+                    }
                 } else {
-                    null_out << *it << ",";
+                    if (show_output) {
+                        std::cout << *it << ",";
+                    } else {
+                        null_out << *it << ",";
+                    }
                 }
             }
-            null_out << "\n";
+            if (show_output) {
+                std::cout << "\n";
+            } else {
+                null_out << "\n";
+            }
         }
     }
 
