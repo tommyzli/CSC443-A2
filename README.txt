@@ -1,6 +1,6 @@
 CSC443 Assignment 2
 
-To buid:
+To build:
     > make all
 
 Page operations
