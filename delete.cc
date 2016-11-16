@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
     Page page;
     // write an empty record into the slot to delete
-    Record *empty_record = new Record();
+    Record *empty_record = new Record(NUM_ATTRIBUTES, "0000000000");
     read_page(heap, rid->page_id, &page);
     if (!page.data->at(rid->slot).empty()) {
         page.used_slots --;
